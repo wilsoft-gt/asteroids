@@ -100,7 +100,16 @@ class LargeAsteroid(MovingObject):
     def generate(self):
         pass
 
+class MediumAsteroid(MovingObject):
+    #TODO complete this one
+    pass
+
+class SmallAsteroid(MovingObject):
+    #TODO complete this one
+    pass
+
 class Ship(MovingObject):
+    #TODO implement the rest of the methods
     def __init__(self, center_x, center_y, velocity_x, velocity_y, lives, angle, radius):
         super().__init__(center_x, center_y, velocity_x, velocity_y, lives, angle, radius)
 
@@ -108,8 +117,10 @@ class Ship(MovingObject):
         ship = arcade.load_texture("resources/images/playerSHip1_orange.png")
         arcade.draw_texture_rectangle(self.center.x, self.center.y, 50, 50, ship, self.angle)
 
-class SmallAsteroid(MovingObject):
+class Bullet(MovingObject):
+    #TODO complete this one
     pass
+
 
 class Game(arcade.Window):
     """
