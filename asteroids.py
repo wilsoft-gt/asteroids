@@ -5,7 +5,10 @@ Designed to be completed by others
 
 This program implements the asteroids game.
 """
+from abc import ABC
+from abc import abstractmethod
 import arcade
+import random
 
 # These are Global constants to use throughout the game
 SCREEN_WIDTH = 800
@@ -31,8 +34,82 @@ MEDIUM_ROCK_RADIUS = 5
 SMALL_ROCK_SPIN = 5
 SMALL_ROCK_RADIUS = 2
 
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+class Velocity:
+    def __init__(self, dx, dy):
+        self.dx = dx
+        self.dy = dy
+
+class MovingObject(ABC):
+    def __init__(self, centerX, centerY, velocityX, velocityY, lives, angle, radius):
+        self.center = Point(centerY, centerY)
+        self.velocity = Velocity(velocityX, velocityY)
+        self.alive = True
+        self.lives = lives
+        self.radius = radius
+        self.angle = angle
+
+    @abstractmethod
+    def draw(self):
+        print("You need to implement this on your class")
+    
+    @abstractmethod
+    def advance(self):
+        print("You need to define the speed on your class")
+
+    @abstractmethod
+    def rotate(self):
+        print("You need to setup the rotation in your class")
+
+    def touchingEdges(self):
+        if self.center.x >= SCREEN_WIDTH:
+            self.center.x = 1
+
+        if self.center.x <= 0:
+            self.center.x = SCREEN_WIDTH
+
+        if self.center.y >= SCREEN_HEIGHT:
+            self.center.y = 1
+            
+        if self.center.y <= 0:
+            self.center.y = SCREEN_HEIGHT
+
+    def hit(self):
+        self.alive = False
 
 
+class LargeAsteroid(MovingObject):
+    def __init__(self, center_x, center_y, velocity_x, velocity_y, lives, angle, radius):
+        super().__init__(center_x, center_y, velocity_x, velocity_y, lives, angle, radius)
+    
+
+    def draw(self):
+        large = arcade.load_texture("resources/images/meteorGrey_big1.png")
+        arcade.draw_texture_rectangle(self.center.x, self.center.y, 50, 50, large, self.angle)
+
+    def advance(self):
+        self.center.x += self.velocity.dx
+        self.center.y += self.velocity.dy
+
+    def rotate(self):
+        self.angle += 1
+    def generate(self):
+        pass
+
+class Ship(MovingObject):
+    def __init__(self, center_x, center_y, velocity_x, velocity_y, lives, angle, radius):
+        super().__init__(center_x, center_y, velocity_x, velocity_y, lives, angle, radius)
+
+    def draw(self):
+        ship = arcade.load_texture("resources/images/playerSHip1_orange.png")
+        arcade.draw_texture_rectangle(self.center.x, self.center.y, 50, 50, ship, self.angle)
+
+class SmallAsteroid(MovingObject):
+    pass
 
 class Game(arcade.Window):
     """
@@ -55,6 +132,14 @@ class Game(arcade.Window):
 
         self.held_keys = set()
 
+        self.Asteroid1 = LargeAsteroid(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, random.uniform(-BIG_ROCK_SPEED, BIG_ROCK_SPEED), random.uniform(-BIG_ROCK_SPEED, BIG_ROCK_SPEED), 3, 0, BIG_ROCK_RADIUS)
+        self.Asteroid2 = LargeAsteroid(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, random.uniform(-BIG_ROCK_SPEED, BIG_ROCK_SPEED), random.uniform(-BIG_ROCK_SPEED, BIG_ROCK_SPEED), 3, 0, BIG_ROCK_RADIUS)
+        self.Asteroid3 = LargeAsteroid(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, random.uniform(-BIG_ROCK_SPEED, BIG_ROCK_SPEED), random.uniform(-BIG_ROCK_SPEED, BIG_ROCK_SPEED), 3, 0, BIG_ROCK_RADIUS)
+        self.Asteroid4 = LargeAsteroid(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, random.uniform(-BIG_ROCK_SPEED, BIG_ROCK_SPEED), random.uniform(-BIG_ROCK_SPEED, BIG_ROCK_SPEED), 3, 0, BIG_ROCK_RADIUS)
+        self.Asteroid5 = LargeAsteroid(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, random.uniform(-BIG_ROCK_SPEED, BIG_ROCK_SPEED), random.uniform(-BIG_ROCK_SPEED, BIG_ROCK_SPEED), 3, 0, BIG_ROCK_RADIUS)
+
+        self.asteroid_array = [self.Asteroid1, self.Asteroid2, self.Asteroid3, self.Asteroid4, self.Asteroid5]
+        
         # TODO: declare anything here you need the game class to track
 
     def on_draw(self):
@@ -65,7 +150,8 @@ class Game(arcade.Window):
 
         # clear the screen to begin drawing
         arcade.start_render()
-
+        for asteroid in self.asteroid_array:
+            asteroid.draw()
         # TODO: draw each object
 
     def update(self, delta_time):
@@ -74,6 +160,10 @@ class Game(arcade.Window):
         :param delta_time: tells us how much time has actually elapsed
         """
         self.check_keys()
+        for asteroid in self.asteroid_array:
+            asteroid.advance()
+            asteroid.rotate()
+            asteroid.touchingEdges()
 
         # TODO: Tell everything to advance or move forward one step in time
 
