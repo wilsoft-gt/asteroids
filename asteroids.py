@@ -20,7 +20,6 @@ BULLET_SPEED = 10
 BULLET_LIFE = 60
 
 SHIP_TURN_AMOUNT = 3
-SHIP_THRUST_AMOUNT = 0.25
 SHIP_RADIUS = 30
 
 INITIAL_ROCK_COUNT = 5
@@ -123,6 +122,7 @@ class Ship(MovingObject):
         self.center.y = SCREEN_HEIGHT/2
         self.velocity.dx = 0
         self.velocity.dy = 0
+        self.thrust = 0
         self.lives = 3
         self.radius = 50
         self.angle = 0
@@ -142,12 +142,24 @@ class Ship(MovingObject):
         self.angle -= 3
 
     def acelerate(self):
-        self.velocity.dx -= math.sin(math.radians(self.angle)) * SHIP_THRUST_AMOUNT
-        self.velocity.dy += math.cos(math.radians(self.angle)) * SHIP_THRUST_AMOUNT
+        self.velocity.dx = -math.sin(math.radians(self.angle)) * self.thrust
+        self.velocity.dy = +math.cos(math.radians(self.angle)) * self.thrust
 
     def decelerate(self):
-        self.velocity.dx += math.sin(math.radians(self.angle)) * SHIP_THRUST_AMOUNT
-        self.velocity.dy -= math.cos(math.radians(self.angle)) * SHIP_THRUST_AMOUNT
+        self.velocity.dx = +math.sin(math.radians(self.angle)) * self.thrust
+        self.velocity.dy = -math.cos(math.radians(self.angle)) * self.thrust
+
+    def increaseThrust(self):
+        if self.thrust < 5:
+            self.thrust += 0.25
+        else:
+            self.thrust = 5.0
+
+    def decreaseThrust(self):
+        if self.thrust > 0.0:
+            self.thrust -= 0.25
+        else:
+            self.thrust = 0.0
     
     def rotate(self):
         return True
@@ -169,8 +181,8 @@ class Bullet(MovingObject):
         self.center.y += self.velocity.dy
 
     def fire(self):
-        self.velocity.dx -= math.sin(math.radians(self.angle+90)) * BULLET_SPEED
-        self.velocity.dy += math.cos(math.radians(self.angle+90)) * BULLET_SPEED
+        self.velocity.dx = -math.sin(math.radians(self.angle+90)) * BULLET_SPEED
+        self.velocity.dy = +math.cos(math.radians(self.angle+90)) * BULLET_SPEED
     
     def rotate(self):
         pass
@@ -248,7 +260,7 @@ class Game(arcade.Window):
             bullet.touchingEdges()
             if bullet.alive == False:
                 self.bullets_list.remove(bullet)
-        
+        print("DX: {} - DY: {}".format(self.ship.velocity.dx, self.ship.velocity.dy))
         # TODO: Tell everything to advance or move forward one step in time
 
         # TODO: Check for collisions
@@ -265,14 +277,20 @@ class Game(arcade.Window):
             self.ship.rotate_right()
             
         if arcade.key.UP in self.held_keys:
+            self.ship.increaseThrust()
             self.ship.acelerate()
                         
-        if arcade.key.UP not in self.held_keys:
-            self.ship.velocity.dx = 0
-            self.ship.velocity.dy = 0
-                        
         if arcade.key.DOWN in self.held_keys:
-            pass
+            self.ship.increaseThrust()
+            self.ship.decelerate()
+            was_up = False
+
+        if arcade.key.DOWN not in self.held_keys and arcade.key.UP not in self.held_keys:
+            self.ship.decreaseThrust()
+            self.ship.decelerate()
+            self.ship.acelerate()
+
+            
 
         # Machine gun mode...
         #if arcade.key.SPACE in self.held_keys:
@@ -295,6 +313,7 @@ class Game(arcade.Window):
         """
         Removes the current key from the set of held keys.
         """
+
         if key in self.held_keys:
             self.held_keys.remove(key)
 
